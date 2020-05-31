@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>SMS simulator</title>
+
+    <style type="text/css">
+        [v-cloak] {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        This page simulates your phone. You will get notification here from Delivery Serice.
+    </div>
+    <div>
+        Instead of sending SMS, Delivery Service will notify of new delivery with WebSocket.
+    </div>
+
+    <div id="app" v-cloak>
+        <div>
+            <h3>SMS:</h3>
+            <div>Number: {{ last.sms }}</div>
+            <div>Address: {{ last.address }}</div>
+        </div>
+    </div>
+</body>
+
+<script src="https://unpkg.com/vue"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/3.5.2/superagent.min.js"></script>
+
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            collections: '',
+            last: {
+                sms: '-',
+                address: '-',
+            }
+        }
+    });
+
+    const payEndpoint = '/payment/';
+
+    const setStatus = (status) => document.getElementById('status').textContent = status;
+
+    const getData = async () => {
+        var resp = await fetch(payEndpoint + document.getElementById('paymentId').value);
+        if (resp.status == 404) {
+            document.getElementById('paymentAmount').value = '-';
+            return;
+        }
+
+        const data = await resp.json();
+        document.getElementById('paymentAmount').value = data.amount;
+    }
+
+    // const webSocket = new WebSocket(`ws://localhost:8000/ws`);
+    const webSocket = new WebSocket(`/ws`);
+
+    webSocket.onmessage = (evt) => {
+        const data = JSON.parse(evt.data);
+        console.log(data);
+        app.last = data;
+    };
+
+    webSocket.onopen = () => { console.log('open'); };
+    webSocket.onclose = () => { console.log('closed'); };
+    webSocket.onerror = (evt) => { console.log(evt); };
+</script>
+
+</html>

@@ -1,0 +1,24 @@
+version: "3.4"
+services:
+    ext-paymentprovider:
+        build: ./payment-provider
+        ports:
+            - "9080:80"
+    ext-deliverycompany:
+        build: ./delivery-company
+        ports:
+           - "9090:80"
+    inventory-service:
+        build: ./inventory-service
+        ports:
+            - "9040:80"
+    db:
+        image: "postgres:latest"
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_DB=Inventory
+        #volumes:
+        #  - './data/test/postgres:/var/lib/postgresql/data'
+        ports:
+            - "5435:5432"

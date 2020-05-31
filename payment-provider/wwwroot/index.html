@@ -1,0 +1,82 @@
+<html>
+
+<body>
+    <div>Payment page</div>
+    <input id="paymentId" type="text" placeholder="Enter id"></label>
+    <input id="paymentAmount" type="text" placeholder="Enter value"></label>
+    <div id="status"></div>
+    <button onclick="onPay()">Pay</button>
+    <!-- <button onclick="createPayment()">Pay</button> -->
+</body>
+<script>
+    const payEndpoint = '/payment/';
+
+    const setStatus = (status) => document.getElementById('status').textContent = status;
+
+    const getData = async () => {
+        var resp = await fetch(payEndpoint + document.getElementById('paymentId').value);
+        if (resp.status == 404) {
+            document.getElementById('paymentAmount').value = '-';
+            return;
+        }
+
+        const data = await resp.json();
+        document.getElementById('paymentAmount').value = data.amount;
+    }
+
+    // const createPayment = async () => {
+    //     const resp = await fetch(payEndpoint + 'create-payment',
+    //         {
+    //             method: 'POST',
+    //             mode: 'cors',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //                 'X-Api-Key': 'secret-key'
+    //             },
+    //             body: JSON.stringify({ amount: 12345 })
+    //         });
+    //     console.log(resp);
+    // }
+
+    const onPay = async () => {
+        const data = {
+            id: document.getElementById('paymentId').value,
+            state: 1
+        }
+
+        const resp = await fetch(payEndpoint + 'private/update-payment-state',
+            {
+                method: 'POST',
+                mode: 'cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Api-Key': 'secret-key'
+                },
+                body: JSON.stringify(data)
+            });
+
+        console.log(resp);
+
+        if (resp.status != 204) {
+            setStatus('Payment Failed');
+            return;
+        }
+
+        setStatus('Payment Succeeded. Redirecting.');
+
+        setTimeout(() => window.location.href = urlParams.get('callbackUrl'), 2000);
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+
+    if (!urlParams.has('paymentId') || !urlParams.has('callbackUrl')) {
+        // TODO: Error handling
+        setStatus('parameters missing');
+    }
+
+    document.getElementById('paymentId').value = urlParams.get('paymentId');
+
+    getData();
+</script>
+
+</html>
