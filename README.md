@@ -5,6 +5,7 @@
 
 Implement Frontend and Backend for e-commerce system.
 
+![Diagram](architecture.png)
 #### User stories
 
 * Customer needs to be able to 
@@ -41,7 +42,7 @@ We have legacy Inventory Service, that can be used, but it will be discarded in 
         * _DeliveryComapny_ will notify _SMS Client_ after X seconds.
       * Return Delivery id to customer
         
-      * Packagin will process new orders in 10-30sec
+    * NOTE: Packaging will process new orders in 10-30sec
 
 ## Services
 
@@ -139,7 +140,7 @@ curl --request POST \
   --url http://localhost:9090/delivery \
   --header 'content-type: application/json' \
   --data '{
-    "senderNotificationUrl": "http://host.docker.internal:80/delivery-notify/6aaee",
+    "senderNotificationUrl": "http://host.docker.internal:80/delivery-notify/",
     "address": "test",
     "sms": "tt",
     "referenceId": "6aae"
@@ -153,6 +154,11 @@ curl --request POST \
 __NOTE:__ Check callback url from https://nickjanetakis.com/blog/docker-tip-65-get-your-docker-hosts-ip-address-from-in-a-container
 
 `host.docker.internal` on Windows and macOS. Use `ip a` to check `docker0` inet ip.
+
+Payload sent to callback url
+```json
+{ "referenceId": "6aae", "pickUpTime":"0001-01-01T00:00:00+00:00" }
+```
 
 Get delivery request
 ```sh
