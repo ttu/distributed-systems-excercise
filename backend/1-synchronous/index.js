@@ -11,9 +11,14 @@ const router = new Router();
 const orders = [];
 
 router
+  // TODO: How to define optional parameters in Koa?
   .get('/item', async (ctx, next) => {
     // Get items from InventoryService
-    ctx.body = await getInventory();
+    ctx.body = await getFromInventory('');
+  })
+  .get('/item/:id', async (ctx, next) => {
+    // Get item from InventoryService
+    ctx.body = await getFromInventory(ctx.params.id);
   })
   .post('/create-order', async (ctx, next) => {
     console.log(`Create order`);
@@ -25,11 +30,17 @@ router
     order.paymentId = cretePaymentResult.id;
     console.log(`Payment cerated`, { paymentId: cretePaymentResult.id });
 
+    const callbackUrl = `http://localhost:5590/handle-payment-callback/${order.paymentId}`;
+
     // Return Created to frontend with id
-    ctx.body = { paymentId: order.paymentId };
+    ctx.status = 201;
+    ctx.body = {
+      paymentId: order.paymentId,
+      paymentUrl: `http://localhost:9080/?callbackUrl=${callbackUrl}&paymentId=${order.paymentId}`,
+    };
   })
-  .post('/handle-payment', async (ctx, next) => {
-    const paymentId = '1234';
+  .get('/handle-payment-callback/:id', async (ctx, next) => {
+    const paymentId = ctx.params.id;
 
     console.log(`Handling payment`, { paymentId });
 
@@ -41,11 +52,11 @@ router
     if (!isPaid) ctx.throw(400, 'Order is not paid');
 
     // Send delivery request to DeliveryCompany
-    const deliveryRequest = sendDeliveryRequest(payload);
+    const deliveryRequest = await sendDeliveryRequest(paymentId);
     console.log(`Delivery request sent`, { deliveryId: deliveryRequest.id });
 
     // Return Delivery id to customer
-    ctx.body = { deliveryId: deliveryRequest.id };
+    ctx.body = { deliveryId: deliveryRequest };
 
     // Packaging will process new orders in 10-30sec
   })
@@ -66,25 +77,25 @@ const INVENTORY_URL = 'http://localhost:9040/inventory';
 const PAYMENT_URL = 'http://localhost:9080/payment';
 const DELIVERY_URL = 'http://localhost:9090/delivery';
 
-const getInventory = async () => {
-  const response = await axios.get(INVENTORY_URL);
+const getFromInventory = async (id) => {
+  const response = await axios.get(`${INVENTORY_URL}/${id}`);
   return response.data;
 };
 
 const createPayment = async (order) => {
   const payload = { amount: order.amount };
-  const response = await axios.post(PAYMENT_URL + '/create-payment', payload);
+  const response = await axios.post(`${PAYMENT_URL}/create-payment`, payload);
   return response.data;
 };
 
 const isPaymentPaid = async (paymentId) => {
-  const payment = await axios.get(PAYMENT_URL + `/${paymentId}`);
-  return payment.data.state !== 1;
+  const payment = await axios.get(`${PAYMENT_URL}/${paymentId}`);
+  return payment.data.state === 1;
 };
 
 const sendDeliveryRequest = async (paymentId) => {
   const payload = {
-    senderNotificationUrl: 'http://host.docker.internal:80/delivery-notify/' + paymentId,
+    senderNotificationUrl: `http://host.docker.internal:80/delivery-notify/${paymentId}`,
     address: 'test',
     sms: 'tt',
     referenceId: paymentId,
