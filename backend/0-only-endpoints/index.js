@@ -1,37 +1,63 @@
+/*
+ * This could be a start for backend and contain only the example endoints
+*/
+
 import Koa from 'koa';
 import Router from 'koa-router';
+import BodyParser from 'koa-bodyparser';
+
 import axios from 'axios';
 
 const port = 5590;
 const app = new Koa();
 const router = new Router();
 
-const INVENTORY_URL = 'http://localhost:9040/inventory';
-const PAYMENT_URL = 'http://localhost:9080/payment';
-const DELIVERY_URL = 'http://localhost:9090/delivery';
+// This is a example solution
 
-// This is a simple solution
+const orders = {
+  1: {
+    name: 'Test',
+  },
+};
 
-const orders = [];
+const getOrder = async (id) => {
+  await delay(1000);
+  return orders[id];
+};
+
+const updateOrder = async (id, order) => {
+  await delay(1000);
+  return (orders[id] = order);
+};
+
+const delay = async (delayInMs) => {
+  const p = new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve();
+    }, delayInMs);
+  });
+  return p;
+};
 
 router
-  .get('/item', async (ctx, next) => {
+  .get('/item/:id', async (ctx, next) => {
     // Get items from InventoryService
-    const response = await axios.get(INVENTORY_URL);
-    ctx.body = response.data;
+    const id = ctx.params.id;
+    const current = await getOrder(id);
+    ctx.body = { order: current };
   })
   .post('/create-order', async (ctx, next) => {
-    const order = { amount: 1234 };
-
     console.log(`Create order`);
-    orders.push(order);
+
+    const id = ctx.body.id;
+    const current = getOrder(id);
 
     // Create payment to PaymentProvider
-    const payload = { amount: order.amount };
-    const response = await axios.post(PAYMENT_URL + '/create-payment', payload);
+    const cretePaymentResult = await paymentService(order);
+    order.paymentId = cretePaymentResult.id;
+
     // Return Created to frontend with id
-    order.paymentId = response.data.id;
-    ctx.body = { paymentId: order.paymentId };
+    ctx.body = { order: current };
   })
   .post('/handle-payment', async (ctx, next) => {
     const paymentId = '1234';
@@ -39,29 +65,16 @@ router
     console.log(`Handling payment`, { paymentId });
 
     const stored = orders.filter((o) => o.paymentId === paymentId);
-
-    if (stored) {
-      ctx.status = 404;
-      return;
-    }
+    if (!stored) ctx.throw(404);
 
     // Validate payment state is 1 from PaymentProvider
-    const payment = await axios.get(PAYMENT_URL + `/${paymentId}`);
-    if (payment.data.state !== 1) {
-      ctx.status = 400;
-      return;
-    }
+    const isPaid = await isPaymentPaid(paymentId);
+    if (!isPaid) ctx.throw(400, 'Order is not paid');
 
     // Send delivery request to DeliveryCompany
-    const payload = {
-      senderNotificationUrl: 'http://host.docker.internal:80/delivery-notify/' + paymentId,
-      address: 'test',
-      sms: 'tt',
-      referenceId: paymentId,
-    };
-    const deliveryRequest = await axios.post(DELIVERY_URL, payload);
+    const deliveryRequest = sendDeliveryRequest(payload);
     // Return Delivery id to customer
-    ctx.body = { deliveryId: deliveryRequest.data.id };
+    ctx.body = { deliveryId: deliveryRequest.id };
 
     // Packaging will process new orders in 10-30sec
   })
@@ -74,6 +87,12 @@ router
     ctx.status = 200;
   });
 
+app.use(BodyParser());
 app.use(router.routes()).use(router.allowedMethods());
 
 app.listen(port, () => console.log(`Server running on port ${port}`));
+
+const getInventory = async () => {
+  const response = await axios.get(INVENTORY_URL);
+  return response.data;
+};
