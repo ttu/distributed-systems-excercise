@@ -1,11 +1,14 @@
 import Koa from 'koa';
 import Router from 'koa-router';
+import bodyParser from 'koa-bodyparser';
 import axios from 'axios';
 
 // This is a simple solution
 
 const port = 5590;
 const app = new Koa();
+app.use(bodyParser());
+
 const router = new Router();
 
 const orders = [];
@@ -22,7 +25,15 @@ router
   })
   .post('/create-order', async (ctx, next) => {
     console.log(`Create order`);
-    const order = { amount: 1234 };
+
+    const itemId = ctx.request.body.itemId;
+    const count = ctx.request.body.count;
+
+    const item = await getFromInventory(itemId);
+
+    if (item.quantity < count) ctx.throw(400, 'Not enough items in inventory');
+
+    const order = { itemId: itemId, count: count, amount: item.price * count };
     orders.push(order);
 
     // Create payment to PaymentProvider
@@ -64,7 +75,7 @@ router
   // DeliveryComapny will notify SMS Client after X seconds.
   .post('/delivery-notify', (ctx, next) => {
     // Backend endpoint must return Ok to Delivery Company
-    const deliveryId = ctx.body.referenceId;
+    const deliveryId = ctx.request.body.referenceId;
     console.log(`Delivery will be picked up soon`, { deliveryId });
     ctx.status = 200;
   });
