@@ -45,7 +45,7 @@ namespace DeliveryCompany
                     Console.WriteLine($"Changing state to notified: {c.Id}");
 
                     var content = new StringContent(
-                        JsonConvert.SerializeObject(new { c.ReferenceId, PickUpTime = DateTimeOffset.UtcNow.AddSeconds(30) }),
+                        JsonConvert.SerializeObject(new { c.Id, c.ReferenceId, PickUpTime = DateTimeOffset.UtcNow.AddSeconds(30) }),
                         Encoding.UTF8, "application/json");
 
                     var response = await _httpClient.CreateClient().PostAsync(c.SenderNotificationUrl, content);

@@ -157,7 +157,7 @@ __NOTE:__ Check callback url from https://nickjanetakis.com/blog/docker-tip-65-g
 
 Payload sent to callback url
 ```json
-{ "referenceId": "6aae", "pickUpTime":"0001-01-01T00:00:00+00:00" }
+{ "id": "fc881", "referenceId": "6aae", "pickUpTime":"0001-01-01T00:00:00+00:00" }
 ```
 
 Get delivery request

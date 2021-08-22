@@ -65,8 +65,9 @@ export const addEcomRoutes = (router) => {
     .post('/delivery-notify', (ctx, next) => {
       // Backend endpoint must return Seccess code to Delivery Company
       // TODO: Configure body middleware. Now properties might be in upper or lower case
+      const deliveryId = ctx.request.body.Id;
       const paymentId = ctx.request.body.ReferenceId;
-      console.log(`Delivery will be picked up soon`, { paymentId });
+      console.log(`Delivery will be picked up soon`, { deliveryId, paymentId });
       ctx.status = 204;
     });
 };
