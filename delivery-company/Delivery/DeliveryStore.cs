@@ -40,7 +40,7 @@ namespace DeliveryCompany
             };
 
             _database.Add(delivery);
-            Console.WriteLine(delivery.Id);
+            Console.WriteLine($"Created delivery: {delivery.Id}");
 
             return delivery;
         }

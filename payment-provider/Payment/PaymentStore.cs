@@ -13,11 +13,12 @@ namespace PaymentProvider
             CreatePayment(40);
             CreatePayment(30);
         }
+        
         public Payment CreatePayment(double value)
         {
             var payment = new Payment(value);
             _database.Add(payment);
-            Console.WriteLine(payment.Id);
+            Console.WriteLine($"Created payment: {payment.Id}");
             return payment;
         }
 

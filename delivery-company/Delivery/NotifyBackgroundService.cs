@@ -32,7 +32,7 @@ namespace DeliveryCompany
                     var duration = DateTimeOffset.UtcNow - c.Events.Last().UpdateTime;
                     if (duration.TotalSeconds > 30)
                     {
-                        Console.WriteLine($"Id: {c.Id} state to Picked");
+                        Console.WriteLine($"Delivery state to Picked: {c.Id}");
                         c.Events.Add(new DeliveryEvent(DeliveryStatus.Picked));
                         _store.UpdateDelivery(c);
                     }
@@ -42,15 +42,22 @@ namespace DeliveryCompany
 
                 var notifyTasks = created.Select(async c =>
                 {
+                    Console.WriteLine($"Changing state to notified: {c.Id}");
+
                     var content = new StringContent(
                         JsonConvert.SerializeObject(new { c.ReferenceId, PickUpTime = DateTimeOffset.UtcNow.AddSeconds(30) }),
                         Encoding.UTF8, "application/json");
+
                     var response = await _httpClient.CreateClient().PostAsync(c.SenderNotificationUrl, content);
                     if (response.IsSuccessStatusCode)
                     {
-                        Console.WriteLine($"Id: {c.Id} state to Notified");
+                        Console.WriteLine($"Delivery state to Notified: {c.Id}");
                         c.Events.Add(new DeliveryEvent(DeliveryStatus.Notified));
                         _store.UpdateDelivery(c);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Failed to change state to Notified: {c.Id}");
                     }
                 });
 
