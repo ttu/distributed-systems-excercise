@@ -69,7 +69,8 @@ router
     // Return Delivery id to customer
     ctx.body = { deliveryId: deliveryRequest };
 
-    // Packaging will process new orders in 10-30sec
+    // TODO: Packaging will process new orders in 10-30sec
+    // TODO: Capture order from psp
   })
   // DeliveryCompany will notify Backend on pickup to url defined in senderNotificationUrl. (POST)
   // DeliveryComapny will notify SMS Client after X seconds.
@@ -77,7 +78,7 @@ router
     // Backend endpoint must return Ok to Delivery Company
     const deliveryId = ctx.request.body.referenceId;
     console.log(`Delivery will be picked up soon`, { deliveryId });
-    ctx.status = 200;
+    ctx.status = 204;
   });
 
 app.use(router.routes()).use(router.allowedMethods());
@@ -106,7 +107,8 @@ const isPaymentPaid = async (paymentId) => {
 
 const sendDeliveryRequest = async (paymentId) => {
   const payload = {
-    senderNotificationUrl: `http://host.docker.internal:80/delivery-notify/${paymentId}`,
+    senderNotificationUrl: `http://host.docker.internal:5590/delivery-notify`,
+    //senderNotificationUrl: `http://localhost:5590/delivery-notify`,
     address: 'test',
     sms: 'tt',
     referenceId: paymentId,
