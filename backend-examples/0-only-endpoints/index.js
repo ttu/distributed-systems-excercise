@@ -1,6 +1,6 @@
 /*
  * This could be a start for backend and contain only the example endoints
-*/
+ */
 
 import Koa from 'koa';
 import Router from 'koa-router';
