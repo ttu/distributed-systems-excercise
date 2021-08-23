@@ -1,27 +1,23 @@
-import axios from 'axios';
+import API from './api.js';
 
-const INVENTORY_URL = 'http://localhost:9040/inventory';
-const PAYMENT_URL = 'http://localhost:9080/payment';
-const DELIVERY_URL = 'http://localhost:9090/delivery';
-
-const orders = [];
+const ORDER_DB = [];
 
 const getFromInventory = async (id) => {
-  const response = await axios.get(`${INVENTORY_URL}/${id}`);
+  const response = await API.getFromInventory(id);
   console.log('respoonse from inv', resposen.data);
   return response.data;
 };
 
 const createOrder = async (itemId, count) => {
-  const item = await getFromInventory(itemId);
+  const item = await API.getFromInventory(itemId);
 
   if (item.quantity < count) return { err: 400, value: 'Not enough items in inventory' };
 
   const order = { itemId: itemId, count: count, amount: item.price * count };
-  orders.push(order);
+  ORDER_DB.push(order);
 
   // Create payment to PaymentProvider
-  const cretePaymentResult = await createPayment(order);
+  const cretePaymentResult = await API.createPayment(order);
   order.paymentId = cretePaymentResult.id;
   console.log(`Payment created`, { paymentId: cretePaymentResult.id });
 
@@ -36,47 +32,28 @@ const createOrder = async (itemId, count) => {
   };
 };
 
-
 const createDeliveryRequest = async (paymentId) => {
   console.log(`Handling payment`, { paymentId });
 
-  const stored = orders.filter((o) => o.paymentId === paymentId);
+  const stored = ORDER_DB.filter((o) => o.paymentId === paymentId);
   if (!stored) return { err: 404, value: 'No order for payment' };
 
   // Validate payment state is 1 from PaymentProvider
-  const isPaid = await isPaymentPaid(paymentId);
+  const payment = await API.getPayment(paymentId);
+  if (!payment) return { err: 404, value: 'Payment not found' };
+
+  const isPaid = isPaymentPaid(payment);
   if (!isPaid) return { err: 400, value: 'Order is not paid' };
 
   // Send delivery request to DeliveryCompany
-  const deliveryRequest = await sendDeliveryRequest(paymentId);
+  const deliveryRequest = await API.sendDeliveryRequest(paymentId);
   console.log(`Delivery request sent`, { deliveryId: deliveryRequest.id });
 
   // Return Delivery id to customer
   return { ok: true, value: deliveryRequest };
 };
 
-const createPayment = async (order) => {
-  const payload = { amount: order.amount };
-  const response = await axios.post(`${PAYMENT_URL}/create-payment`, payload);
-  return response.data;
-};
-
-const isPaymentPaid = async (paymentId) => {
-  const payment = await axios.get(`${PAYMENT_URL}/${paymentId}`);
-  return payment.data.state === 1;
-};
-
-const sendDeliveryRequest = async (paymentId) => {
-  const payload = {
-    senderNotificationUrl: `http://host.docker.internal:5590/delivery-notify`,
-    //senderNotificationUrl: `http://localhost:5590/delivery-notify`,
-    address: 'test',
-    sms: 'tt',
-    referenceId: paymentId,
-  };
-  const deliveryRequest = await axios.post(DELIVERY_URL, payload);
-  return deliveryRequest.data;
-};
+const isPaymentPaid = (payment) => payment.state === 1;
 
 export default {
   createOrder,
