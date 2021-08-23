@@ -38,7 +38,7 @@ We have legacy Inventory Service, that can be used, but it will be discarded in 
       * Validate payment state is 1 from _PaymentProvider_
       * Send delivery request to _DeliveryCompany_
         * _DeliveryCompany_ will notify __Backend__ on pickup to url defined in _senderNotificationUrl_. (POST)
-          * __Backend__ endpoint must return Ok to __Delivery Company__
+          * __Backend__ endpoint must return success code to __Delivery Company__
         * _DeliveryComapny_ will notify _SMS Client_ after X seconds.
       * Return Delivery id to customer
         
@@ -112,6 +112,7 @@ curl --request POST \
 	"changeAmount": -3
   }'
 ```
+Change request will return 400 if not enough devices in inventory.
 
 ### Payment Provider
 

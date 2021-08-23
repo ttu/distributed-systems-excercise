@@ -9,6 +9,16 @@ const getFromInventory = async (id) => {
   return response.data;
 };
 
+const inventoryChange = async (id, changeAmount) => {
+  const payload = { id, changeAmount };
+  try {
+    const response = await axios.post(`${INVENTORY_URL}/inventory-change`, payload);
+    return response.status === 204;
+  } catch {
+    return false;
+  }
+};
+
 const createPayment = async (order) => {
   const payload = { amount: order.amount };
   const response = await axios.post(`${PAYMENT_URL}/create-payment`, payload);
@@ -34,6 +44,7 @@ const sendDeliveryRequest = async (paymentId) => {
 
 export default {
   getFromInventory,
+  inventoryChange,
   createPayment,
   getPayment,
   sendDeliveryRequest,

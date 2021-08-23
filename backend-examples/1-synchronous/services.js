@@ -3,15 +3,14 @@ import API from './api.js';
 const ORDER_DB = [];
 
 const getFromInventory = async (id) => {
-  const response = await API.getFromInventory(id);
-  console.log('respoonse from inv', resposen.data);
-  return response.data;
+  const itemResponse = await API.getFromInventory(id);
+  return itemResponse;
 };
 
 const createOrder = async (itemId, count) => {
   const item = await API.getFromInventory(itemId);
 
-  if (item.quantity < count) return { err: 400, value: 'Not enough items in inventory' };
+  if (item.quantity < count) return { err: 422, value: 'Not enough items in inventory' };
 
   const order = { itemId: itemId, count: count, amount: item.price * count };
   ORDER_DB.push(order);
@@ -35,15 +34,20 @@ const createOrder = async (itemId, count) => {
 const createDeliveryRequest = async (paymentId) => {
   console.log(`Handling payment`, { paymentId });
 
-  const stored = ORDER_DB.filter((o) => o.paymentId === paymentId);
-  if (!stored) return { err: 404, value: 'No order for payment' };
+  const orders = ORDER_DB.filter((o) => o.paymentId === paymentId);
+  if (orders.length === 0) return { err: 404, value: 'No order for payment' };
+  const order = orders[0];
 
   // Validate payment state is 1 from PaymentProvider
   const payment = await API.getPayment(paymentId);
   if (!payment) return { err: 404, value: 'Payment not found' };
 
   const isPaid = isPaymentPaid(payment);
-  if (!isPaid) return { err: 400, value: 'Order is not paid' };
+  if (!isPaid) return { err: 422, value: 'Order is not paid' };
+
+  console.log(order)
+  const inventoryChange = await API.inventoryChange(order.itemId, order.count * -1);
+  if (!inventoryChange) return { err: 400, value: 'Not enough inventory' };
 
   // Send delivery request to DeliveryCompany
   const deliveryRequest = await API.sendDeliveryRequest(paymentId);

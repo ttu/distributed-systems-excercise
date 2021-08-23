@@ -42,9 +42,12 @@ namespace InventoryService.Inventory
             if (current == null)
                 return NotFound();
 
+            if (current.Quantity + update.ChangeAmount < 0)
+                return BadRequest();
+
             _store.UpdateQuantity(current.Id, current.Quantity + update.ChangeAmount);
 
-            return Ok(true);
+            return NoContent();
         }
     }
 }
