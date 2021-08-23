@@ -1,61 +1,40 @@
 import services from './services.js';
 
-const orders = [];
 
 export const addEcomRoutes = (router) => {
   router
     // TODO: How to define optional parameters in Koa?
     .get('/item', async (ctx, next) => {
       // Get items from InventoryService
-      ctx.body = await services.getFromInventory('');
+      const items = await services.getFromInventory('');
+      ctx.body = items;
     })
     .get('/item/:id', async (ctx, next) => {
       // Get item from InventoryService
-      ctx.body = await services.getFromInventory(ctx.params.id);
+      const item = await services.getFromInventory(ctx.params.id);
+      ctx.body = item;
     })
     .post('/create-order', async (ctx, next) => {
       const itemId = ctx.request.body.itemId;
       const count = ctx.request.body.count;
 
-      const item = await services.getFromInventory(itemId);
+      const order = await services.createOrder(itemId, count);
 
-      if (item.quantity < count) ctx.throw(400, 'Not enough items in inventory');
-
-      const order = { itemId: itemId, count: count, amount: item.price * count };
-      orders.push(order);
-
-      // Create payment to PaymentProvider
-      const cretePaymentResult = await services.createPayment(order);
-      order.paymentId = cretePaymentResult.id;
-      console.log(`Payment created`, { paymentId: cretePaymentResult.id });
-
-      const callbackUrl = `http://localhost:5590/handle-payment-callback/${order.paymentId}`;
+      if (order.err) ctx.throw(order.err, order.value);
 
       // Return Created to frontend with id
       ctx.status = 201;
-      ctx.body = {
-        paymentId: order.paymentId,
-        paymentUrl: `http://localhost:9080/?callbackUrl=${callbackUrl}&paymentId=${order.paymentId}`,
-      };
+      ctx.body = order.value;
     })
     .get('/handle-payment-callback/:id', async (ctx, next) => {
       const paymentId = ctx.params.id;
 
-      console.log(`Handling payment`, { paymentId });
+      const deliveryRequest = await services.createDeliveryRequest(paymentId);
+      
+      if (deliveryRequest.err) ctx.throw(deliveryRequest.err, deliveryRequest.value);
 
-      const stored = orders.filter((o) => o.paymentId === paymentId);
-      if (!stored) ctx.throw(404);
-
-      // Validate payment state is 1 from PaymentProvider
-      const isPaid = await services.isPaymentPaid(paymentId);
-      if (!isPaid) ctx.throw(400, 'Order is not paid');
-
-      // Send delivery request to DeliveryCompany
-      const deliveryRequest = await services.sendDeliveryRequest(paymentId);
-      console.log(`Delivery request sent`, { deliveryId: deliveryRequest.id });
-
-      // Return Delivery id to customer
-      ctx.body = { deliveryRequest };
+      ctx.status = 201;
+      ctx.body = { deliveryRequest: deliveryRequest.value };
 
       // TODO: Packaging will process new orders in 10-30sec
       // TODO: Capture order from psp
