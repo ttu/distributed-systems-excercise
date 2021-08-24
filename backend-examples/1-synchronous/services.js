@@ -1,22 +1,20 @@
-import API from './api.js';
-
-const ORDER_DB = [];
+import data from './data_access.js';
 
 const getFromInventory = async (id) => {
-  const itemResponse = await API.getFromInventory(id);
+  const itemResponse = await data.getFromInventory(id);
   return itemResponse;
 };
 
 const createOrder = async (itemId, count) => {
-  const item = await API.getFromInventory(itemId);
+  const item = await data.getFromInventory(itemId);
 
   if (item.quantity < count) return { err: 422, value: 'Not enough items in inventory' };
 
   const order = { itemId: itemId, count: count, amount: item.price * count };
-  ORDER_DB.push(order);
+  data.addOrder(order);
 
   // Create payment to PaymentProvider
-  const cretePaymentResult = await API.createPayment(order);
+  const cretePaymentResult = await data.createPayment(order);
   order.paymentId = cretePaymentResult.id;
   console.log(`Payment created`, { paymentId: cretePaymentResult.id });
 
@@ -31,26 +29,24 @@ const createOrder = async (itemId, count) => {
   };
 };
 
-const createDeliveryRequest = async (paymentId) => {
+const handlePaidOrder = async (paymentId) => {
   console.log(`Handling payment`, { paymentId });
 
-  const orders = ORDER_DB.filter((o) => o.paymentId === paymentId);
-  if (orders.length === 0) return { err: 404, value: 'No order for payment' };
-  const order = orders[0];
+  const order = data.getOrderWithPaymentId(paymentId);
+  if (!order) return { err: 404, value: 'No order for payment' };
 
   // Validate payment state is 1 from PaymentProvider
-  const payment = await API.getPayment(paymentId);
+  const payment = await data.getPayment(paymentId);
   if (!payment) return { err: 404, value: 'Payment not found' };
 
   const isPaid = isPaymentPaid(payment);
   if (!isPaid) return { err: 422, value: 'Order is not paid' };
 
-  console.log(order)
-  const inventoryChange = await API.inventoryChange(order.itemId, order.count * -1);
+  const inventoryChange = await data.inventoryChange(order.itemId, order.count * -1);
   if (!inventoryChange) return { err: 400, value: 'Not enough inventory' };
 
   // Send delivery request to DeliveryCompany
-  const deliveryRequest = await API.sendDeliveryRequest(paymentId);
+  const deliveryRequest = await data.sendDeliveryRequest(paymentId);
   console.log(`Delivery request sent`, { deliveryId: deliveryRequest.id });
 
   // Return Delivery id to customer
@@ -61,6 +57,6 @@ const isPaymentPaid = (payment) => payment.state === 1;
 
 export default {
   createOrder,
-  createDeliveryRequest,
+  handlePaidOrder,
   getFromInventory,
 };

@@ -4,6 +4,16 @@ const INVENTORY_URL = 'http://localhost:9040/inventory';
 const PAYMENT_URL = 'http://localhost:9080/payment';
 const DELIVERY_URL = 'http://localhost:9090/delivery';
 
+const ORDER_DB = [];
+
+const addOrder = (order) => ORDER_DB.push(order);
+
+const getOrderWithPaymentId = (paymentId) => {
+  const orders = ORDER_DB.filter((o) => o.paymentId === paymentId);
+  if (orders.length === 0) return undefined;
+  return orders[0];
+};
+
 const getFromInventory = async (id) => {
   const response = await axios.get(`${INVENTORY_URL}/${id}`);
   return response.data;
@@ -43,6 +53,8 @@ const sendDeliveryRequest = async (paymentId) => {
 };
 
 export default {
+  addOrder,
+  getOrderWithPaymentId,
   getFromInventory,
   inventoryChange,
   createPayment,

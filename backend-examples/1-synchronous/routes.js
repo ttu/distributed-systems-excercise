@@ -29,7 +29,7 @@ export const addEcomRoutes = (router) => {
     .get('/handle-payment-callback/:id', async (ctx, next) => {
       const paymentId = ctx.params.id;
 
-      const deliveryRequest = await services.createDeliveryRequest(paymentId);
+      const deliveryRequest = await services.handlePaidOrder(paymentId);
       
       if (deliveryRequest.err) ctx.throw(deliveryRequest.err, deliveryRequest.value);
 
