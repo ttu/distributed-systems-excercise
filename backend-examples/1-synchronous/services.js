@@ -7,8 +7,10 @@ const getFromInventory = async (id) => {
 
 const createOrder = async (itemId, count) => {
   const item = await data.getFromInventory(itemId);
-
   if (item.quantity < count) return { err: 422, value: 'Not enough items in inventory' };
+
+  const reserve = await data.reserveFromInventory(itemId, count);
+  if (!reserve) return { err: 400, value: 'Not enough items in inventory' };
 
   const order = { itemId: itemId, count: count, amount: item.price * count };
   data.addOrder(order);
@@ -41,9 +43,6 @@ const handlePaidOrder = async (paymentId) => {
 
   const isPaid = isPaymentPaid(payment);
   if (!isPaid) return { err: 422, value: 'Order is not paid' };
-
-  const inventoryChange = await data.inventoryChange(order.itemId, order.count * -1);
-  if (!inventoryChange) return { err: 400, value: 'Not enough inventory' };
 
   // Send delivery request to DeliveryCompany
   const deliveryRequest = await data.sendDeliveryRequest(paymentId);

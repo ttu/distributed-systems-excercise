@@ -19,8 +19,8 @@ const getFromInventory = async (id) => {
   return response.data;
 };
 
-const inventoryChange = async (id, changeAmount) => {
-  const payload = { id, changeAmount };
+const reserveFromInventory = async (id, amount) => {
+  const payload = { id, changeAmount: amount * -1 };
   try {
     const response = await axios.post(`${INVENTORY_URL}/inventory-change`, payload);
     return response.status === 204;
@@ -56,7 +56,7 @@ export default {
   addOrder,
   getOrderWithPaymentId,
   getFromInventory,
-  inventoryChange,
+  reserveFromInventory,
   createPayment,
   getPayment,
   sendDeliveryRequest,
