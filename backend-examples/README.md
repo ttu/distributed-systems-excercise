@@ -2,12 +2,19 @@
 
 ## Synchronous
 
-![Diagram](1-sync.png)
-![Diagram](sync-process.png)
+#### Sequence
 
-## Asynchronous
+![Sync sequence diagram](sync-sequence.png)
+
+#### Processes
+
+![Sync processes diagram](sync-processes.png)
+
+## Event Driven
 
 __TODO__
+
+__Choreography vs Orchestration__
 
 The choreography describes the interactions between multiple services, 
 where as orchestration represents control from one party's perspective. 
@@ -17,8 +24,8 @@ to where the logic that controls the interactions between the services involved 
 
 ### Choreography
 
-![Diagram](async-choreography.png)
+![Choreography diagram](event-choreography.png)
 
 ### Orchestration / Saga
 
-![Diagram](async-orchestration.png)
+![Orchestration diagram](event-orchestration.png)
