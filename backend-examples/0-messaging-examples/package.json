@@ -1,0 +1,16 @@
+{
+  "name": "2-messaging-examples",
+  "version": "1.0.0",
+  "description": "NOTE: In here we use term messages instead of events",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^0.8.0"
+  }
+}
