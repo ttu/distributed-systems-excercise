@@ -13,9 +13,9 @@ This is a good guide. Read this: https://www.rabbitmq.com/getstarted.html
 
 ```sh
 # start consumer
-node index.js c hello_consumer hello_queue
+node 1-messaging/index.js c hello_consumer hello_queue
 # start publisher
-node index.js p hello_publisher hello_queue
+node 1-messaging/index.js p hello_publisher hello_queue
 ```
 
 ## Worker Queue / Distributed tasks
@@ -29,10 +29,10 @@ We can add more consumers to have more processing power
 
 ```sh
 # start consumer multiple consumers
-node index.js c hello_consumer_first hello_queue
-node index.js c hello_consumer_second hello_queue
+node 1-messaging/index.js c hello_consumer_first hello_queue
+node 1-messaging/index.js c hello_consumer_second hello_queue
 # start publisher
-node index.js p hello_publisher hello_queue
+node 1-messaging/index.js p hello_publisher hello_queue
 ```
 
 ## Publish Subscribe / Event driven
@@ -46,10 +46,10 @@ node index.js p hello_publisher hello_queue
 
 ```sh
 # start consumer multiple consumers
-node index_exchange.js c hello_consumer_first hello_exchange
-node index_exchange.js c hello_consumer_second hello_exchange
+node 2-worker/index.js c hello_consumer_first hello_exchange
+node 2-worker/index.js c hello_consumer_second hello_exchange
 # start publisher
-node index_exchange.js p hello_publisher hello_exchange
+node 2-worker/index.js p hello_publisher hello_exchange
 ```
 
 ## Request Reply Pattern
@@ -60,8 +60,6 @@ We need to have own queue for replies. Producer is also Consumer and Consumer is
 
 1. 
 
-
-## Code examples
 
 ### Star RabbitMQ server with Management UI
 
@@ -80,7 +78,6 @@ username: guest
 password: guest
 ```
 
-### Execute e
 
 ### Write some code
 

@@ -1,5 +1,5 @@
-import { createPublisher, sendMessage } from './publisher_exchange.js';
-import { createConsumer } from './consumer_exchange.js';
+import { createPublisher, sendMessage } from './publisher.js';
+import { createConsumer } from './consumer.js';
 
 const myArgs = process.argv.slice(2);
 const type = myArgs[0] ?? 'p';
