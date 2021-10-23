@@ -6,7 +6,6 @@ const openConnection = amq.connect(URL);
 
 let consumerId;
 let channel;
-let queue_name;
 
 export const createConsumer = async (id, queue_name = 'default_tasks') => {
   consumerId = id;
