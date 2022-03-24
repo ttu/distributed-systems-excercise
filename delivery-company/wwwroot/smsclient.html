@@ -21,16 +21,16 @@
     </div>
 
     <div id="app" v-cloak>
-        <div>
+        <div v-if="update.sms !== ''">
             <h3>Delivery for has been picked up and is waiting for the delivery:</h3>
-            <div>Phone number: {{ last.sms }}</div>
-            <div>Address: {{ last.address }}</div>
-            <div>OrderId: {{ last.orderId }}</div>
+            <div>Phone number: {{ update.sms }}</div>
+            <div>Address: {{ update.address }}</div>
+            <div>OrderId: {{ update.orderId }}</div>
         </div>
     </div>
 </body>
 
-<script src="https://unpkg.com/vue"></script>
+<script src="https://unpkg.com/vue@2.6.14"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/3.5.2/superagent.min.js"></script>
 
 <script>
@@ -38,14 +38,14 @@
         el: '#app',
         data: {
             update: {
-                sms: '-',
-                address: '-',
-                orderId: '-',
+                sms: '',
+                address: '',
+                orderId: '',
             }
         }
     });
 
-    const webSocket = new WebSocket(`ws://localhost:8000/ws`);
+    const webSocket = new WebSocket(`ws://localhost:9090/ws`);
 
     webSocket.onmessage = (evt) => {
         const data = JSON.parse(evt.data);
