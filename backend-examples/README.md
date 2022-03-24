@@ -2,6 +2,12 @@
 
 ## Synchronous
 
+```sh
+npm i
+npm start
+curl http://localhost:5590/item
+```
+
 #### Sequence
 
 ![Sync sequence diagram](sync-sequence.png)

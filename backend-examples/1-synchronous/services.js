@@ -1,5 +1,7 @@
 import data from './data_access.js';
 
+const LOCAL_URL = `http://localhost:5590`;
+
 const getFromInventory = async (id) => {
   const itemResponse = await data.getFromInventory(id);
   return itemResponse;
@@ -20,13 +22,13 @@ const createOrder = async (itemId, count) => {
   order.paymentId = cretePaymentResult.id;
   console.log(`Payment created`, { paymentId: cretePaymentResult.id });
 
-  const callbackUrl = `http://localhost:5590/handle-payment-callback/${order.paymentId}`;
+  const callbackUrl = `${LOCAL_URL}/handle-payment-callback/${order.paymentId}`;
 
   return {
     ok: true,
     value: {
       paymentId: order.paymentId,
-      paymentUrl: `http://localhost:9080/?callbackUrl=${callbackUrl}&paymentId=${order.paymentId}`,
+      paymentUrl: `${data.PAYMENT_BASE_URL}/?callbackUrl=${callbackUrl}&paymentId=${order.paymentId}`,
     },
   };
 };

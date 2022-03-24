@@ -1,8 +1,12 @@
 import axios from 'axios';
 
 const INVENTORY_URL = 'http://localhost:9040/inventory';
-const PAYMENT_URL = 'http://localhost:9080/payment';
+const PAYMENT_BASE_URL = 'http://localhost:9080';
+const PAYMENT_URL = `${PAYMENT_BASE_URL}/payment`;
 const DELIVERY_URL = 'http://localhost:9090/delivery';
+
+const USE_DOCKER = true;
+const CALLBACK_URL = USE_DOCKER ? 'http://host.docker.internal:5590' : 'http://localhost:5590';
 
 const ORDER_DB = [];
 
@@ -10,8 +14,7 @@ const addOrder = (order) => ORDER_DB.push(order);
 
 const getOrderWithPaymentId = (paymentId) => {
   const orders = ORDER_DB.filter((o) => o.paymentId === paymentId);
-  if (orders.length === 0) return undefined;
-  return orders[0];
+  return orders.length > 0 ? orders[0] : undefined;
 };
 
 const getFromInventory = async (id) => {
@@ -42,8 +45,7 @@ const getPayment = async (paymentId) => {
 
 const sendDeliveryRequest = async (paymentId) => {
   const payload = {
-    senderNotificationUrl: `http://host.docker.internal:5590/delivery-notify`,
-    //senderNotificationUrl: `http://localhost:5590/delivery-notify`,
+    senderNotificationUrl: `${CALLBACK_URL}/delivery-notify`,
     address: 'test',
     sms: 'tt',
     referenceId: paymentId,
@@ -60,4 +62,5 @@ export default {
   createPayment,
   getPayment,
   sendDeliveryRequest,
+  PAYMENT_BASE_URL,
 };
